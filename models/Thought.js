@@ -1,5 +1,5 @@
 const { Schema, model, Types } = require('mongoose');
-const dateFormat = require('../utils/dateFormat');
+const dateFormat = require('../utils/date-Format');
 
 const ReactionSchema = new Schema(
     {
@@ -43,7 +43,6 @@ const ThoughtSchema = new Schema(
                 ref: "User",
                 required: true
             }],
-        // use ReactionSchema to validate data for a reply
         replies: [ReactionSchema]
     },
     {
