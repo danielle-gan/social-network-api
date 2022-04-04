@@ -7,6 +7,10 @@ const thoughtController = {
                 path: 'reactions',
                 select: '-__v'
             })
+            .populate({
+                path: 'thoughtText',
+                select: '-__v',
+            })
             .select('-__v')
             .sort({ _id: -1 })
             .then(dbData => res.json(dbData))
@@ -17,7 +21,6 @@ const thoughtController = {
     },
 
     createThought({ body }, res) {
-        console.log("this is written by ", body)
         Thought.create(body)
             .then(({ _id }) => {
                 return User.findOneAndUpdate(
@@ -28,7 +31,7 @@ const thoughtController = {
             })
             .then(dbData => {
                 if (!dbData) {
-                    res.status(404).json({ message: 'No user found with this id!' });
+                    res.status(404).json({ message: 'No thought found with this id!' });
                     return;
                 }
                 res.json(dbData);
@@ -77,6 +80,42 @@ const thoughtController = {
             })
             .catch(err => res.status(400).json(err));
     },
+    createReaction({ params, body }, res) {
+        Thought.findOneAndUpdate(
+            { _id: params.thoughtId },
+            { $push: { reactions: body } },
+            { new: true, runValidators: true }
+        )
+            .then((dbData) => {
+                if (!dbData) {
+                    res.status(404).json({ message: 'No Thought found with this id!' });
+                    return;
+                }
+                res.json(dbData);
+            })
+            .catch((err) => {
+                console.log(err);
+                res.status(400).json(err);
+            });
+    },
+    deleteReaction({ params }, res) {
+        Thought.findOneAndUpdate(
+          { _id: params.thoughtId },
+          { $pull: { reactions: { reactionId: params.reactionId } } },
+          { new: true }
+        )
+          .then((dbData) => {
+            if (!dbData) {
+              res.status(404).json({ message: 'No thought found with this id!' });
+              return;
+            }
+            res.json(dbData);
+          })
+          .catch((err) => {
+            console.log(err);
+            res.status(400).json(err);
+          });
+      }
 }
 
 module.exports = thoughtController;
